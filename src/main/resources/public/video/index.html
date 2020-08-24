@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notáøská komora - Twilio úkázka</title>
+  <link rel="stylesheet" href="video.css">
+  <!--<link rel="stylesheet" href="chat.css">-->
+</head>
+<body>
+  <div id="remote-media"></div>
+  <div id="top-info">
+    <div id="logo">
+        <img src="logo.png" alt="Notáøská komora" width="149" height="97"/>
+    </div>
+    <div id="empty">&nbsp;</div>
+    <div id="photo">
+        <img src="zena.jpg" alt="JUDR. Miroslava Sazbová" width="149" height="97"/>  
+        <div id="info">
+            <p class="name">Notáø: JUDR. Miroslava Sazbová</p>
+            <p class="address">Adresa: Kostelní 171, 34401 Domažlice</p>
+        </div>
+    </div>         
+    <br style="clear: left;" />
+  </div>
+  <div id="controls">     
+    <div id="preview">
+      <!--<p class="instructions">Notáø: JUDR.Miroslava Sazbová</p>-->
+      <div id="local-media"></div>
+      <button id="button-preview">Náhled mojí kamery</button>
+    </div>
+
+    <div id="room-controls">
+      <!--<p class="instructions">Název místnosti:</p>-->
+      <!--<input id="room-name" type="text" placeholder="Zadejte název místnosti" />-->
+      <button id="button-join">Vstoupit do videokonference</button>
+      <button id="button-leave">Opustit videokonferenci</button>
+      <br/>
+      <!--<div id="op-controls">-->
+        <p class="op-number-instructions">Èíslo OP</p>
+        <input id="op-number" type="text" placeholder="Zadejte èíslo OP" />
+        <button id="button-verify">Ovìøit v ZR</button>
+      <!--</div>-->
+    </div>
+    <div id="chat">
+        <div id="messages"></div>
+        <input id="chat-input" type="text" placeholder="napište do konverzace" autofocus/>
+    </div>
+  </div>
+  
+  <div id="log"></div>
+
+  <script src="//media.twiliocdn.com/sdk/js/common/v0.1/twilio-common.min.js"></script>
+  <script src="//media.twiliocdn.com/sdk/js/video/releases/1.14.0/twilio-video.js"></script>
+  <script src="//media.twiliocdn.com/sdk/js/chat/releases/4.0.0/twilio-chat.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="video.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>
