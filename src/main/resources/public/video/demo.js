@@ -211,6 +211,9 @@
         //    print("Pøipojen do videokonfernce jako uživatel '" + identity + ".'");
         document.getElementById('button-join').style.display = 'none';
         document.getElementById('button-leave').style.display = 'inline';
+        
+        document.getElementById('button-mute-audio').style.display = 'inline';
+        document.getElementById('button-mute-video').style.display = 'inline';
         // Draw local video, if not already previewing
         var previewContainer = document.getElementById('local-media');
         if (!previewContainer.querySelector('video')) {
@@ -249,6 +252,10 @@
             activeRoom = null;
             document.getElementById('button-join').style.display = 'inline';
             document.getElementById('button-leave').style.display = 'none';
+            document.getElementById('button-mute-audio').style.display = 'none';
+            document.getElementById('button-mute-audio').innerHTML = "Vypnout zvuk";
+            document.getElementById('button-mute-video').style.display = 'none';
+            document.getElementById('button-mute-video').innerHTML = "Vypnout video";
         });
     }
 
@@ -280,5 +287,43 @@
             activeRoom.disconnect();
         }
     }
+    
+    
+    document.getElementById("button-mute-video").onclick = function() {
+        var videoBtn = document.getElementById("button-mute-video");
+        if (activeRoom) {
+            if (videoBtn.innerHTML === "Vypnout video") {
+                activeRoom.localParticipant.videoTracks.forEach(publication => {
+                    publication.disable();
+                    videoBtn.innerHTML = "Zapnout video";
+                });            
+            } else {
+                activeRoom.localParticipant.videoTracks.forEach(publication => {
+                    publication.enable();
+                    videoBtn.innerHTML = "Vypnout video";
+                });           
+            }               
+        }
+    }
+    
+    document.getElementById("button-mute-audio").onclick = function() {
+        var audioBtn = document.getElementById("button-mute-audio");
+        if (activeRoom) {
+            if (audioBtn.innerHTML === "Vypnout zvuk") {
+                activeRoom.localParticipant.audioTracks.forEach(publication => {
+                    publication.disable();
+                    audioBtn.innerHTML = "Zapnout zvuk";
+                });
+            } else {
+                activeRoom.localParticipant.audioTracks.forEach(publication => {
+                    publication.enable();
+                    audioBtn.innerHTML = "Vypnout zvuk";
+                });
+            }           
+        }
+    }    
+    /* end video */
+    
+    
 //});
 
