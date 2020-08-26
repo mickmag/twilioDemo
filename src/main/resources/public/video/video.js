@@ -36,7 +36,8 @@ if (!navigator.webkitGetUserMedia && !navigator.mozGetUserMedia) {
 // from the room, if joined.
 window.addEventListener('beforeunload', leaveRoomIfJoined);
 
-
+//$.getJSON('/token', function(data) {
+//called in chat.js when token obtained
 function initVideo(data) {
     identity = data.identity;
     document.getElementById('room-controls').style.display = 'block';
@@ -68,38 +69,6 @@ function initVideo(data) {
         activeRoom.disconnect();
     };
 }
-
-//$.getJSON('/token', function(data) {
-//  identity = data.identity;
-//
-//  document.getElementById('room-controls').style.display = 'block';
-//
-//  // Bind button to join room
-//  document.getElementById('button-join').onclick = function () {
-////    roomName = document.getElementById('room-name').value;
-//    roomName = "test";
-//    if (roomName) {
-//      print("Joining room '" + roomName + "'...");
-//
-//      var connectOptions = { name: roomName, logLevel: 'debug' };
-//      if (previewTracks) {
-//        connectOptions.tracks = previewTracks;
-//      }
-//
-//      Twilio.Video.connect(data.token, connectOptions).then(roomJoined, function(error) {
-//        print('Could not connect to Twilio: ' + error.message);
-//      });
-//    } else {
-//      alert('Please enter a room name.');
-//    }
-//  };
-//
-//  // Bind button to leave room
-//  document.getElementById('button-leave').onclick = function () {
-//    print('Leaving room...');
-//    activeRoom.disconnect();
-//  };
-//});
 
 // Successfully connected!
 function roomJoined(room) {
