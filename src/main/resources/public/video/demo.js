@@ -9,12 +9,15 @@
     var $chatWindow = $('#messages');
     // Our interface to the Chat service
     var chatClient;
-    // A handle to the "general" chat channel - the one and only channel we
+    // A handle to the chat channel - the one and only channel we
     // will have in this sample app
-    var generalChannel;
+    var chatChannel;
+    // channel name
+    var channelName = 'general';
     // The server will assign the client a random username - store that value
     // here
     var username;
+    
     /* chat */
     // Helper function to print info messages to the chat window
     function print(infoMessage, asHtml) {
@@ -46,7 +49,7 @@
     // Alert the user they have been assigned a random username
     print('Pøipojování...');
     // Get an access token for the current user, passing a username (identity)
-    $.getJSON('/token', function (data) {
+    $.getJSON('/token', function (data) {        
         initVideo(data);
         // Initialize the Chat client
         Twilio.Chat.Client.create(data.token).then(client => {
@@ -84,23 +87,23 @@
     function createOrJoinGeneralChannel() {
         // Get the general chat channel, which is where all the messages are
         // sent in this simple application
-        //    print('Attempting to join "general" chat channel...');        
-        chatClient.getChannelByUniqueName('general')
+        //    print('Attempting to join "general" chat channel...');                
+        chatClient.getChannelByUniqueName(channelName)
                 .then(function (channel) {
-                    generalChannel = channel;
-                    console.log('Found general channel:');
-                    console.log(generalChannel);
+                    chatChannel = channel;
+                    console.log('Found ' + channelName + ' channel:');
+                    console.log(chatChannel);
                     setupChannel();
                 }).catch(function () {
             // If it doesn't exist, let's create it
-            console.log('Creating general channel');
+            console.log('Creating ' + channelName + ' channel');
             chatClient.createChannel({
-                uniqueName: 'general',
-                friendlyName: 'General Chat Channel'
+                uniqueName: channelName,
+                friendlyName: channelName + ' Chat Channel'
             }).then(function (channel) {
-                console.log('Created general channel:');
+                console.log('Created ' + channelName +' channel:');
                 console.log(channel);
-                generalChannel = channel;
+                chatChannel = channel;
                 setupChannel();
             }).catch(function (channel) {
                 console.log('Channel could not be created:');
@@ -112,11 +115,11 @@
     // Set up channel after it has been found
     function setupChannel() {
         // Join the general channel
-        generalChannel.join().then(function (channel) {
+        chatChannel.join().then(function (channel) {
             print('Jste pøipojen do konverzace.');
         });
         // Listen for new messages sent to the channel
-        generalChannel.on('messageAdded', function (message) {
+        chatChannel.on('messageAdded', function (message) {
             printMessage(message.author, message.body);
         });
     }
@@ -126,12 +129,15 @@
     $input.on('keydown', function (e) {
 
         if (e.keyCode == 13) {
-            if (generalChannel === undefined) {
+            if (chatChannel === undefined) {
                 print('The Chat Service is not configured. Please check your .env file.', false);
                 return;
             }
-            generalChannel.sendMessage($input.val())
-            $input.val('');
+            let chatMsg = $input.val();
+            if (chatMsg) {
+                chatChannel.sendMessage(chatMsg)
+                $input.val('');
+            }            
         }
     });
     /* end chat */
