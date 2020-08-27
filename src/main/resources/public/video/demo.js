@@ -84,7 +84,7 @@
     function createOrJoinGeneralChannel() {
         // Get the general chat channel, which is where all the messages are
         // sent in this simple application
-        //    print('Attempting to join "general" chat channel...');
+        //    print('Attempting to join "general" chat channel...');        
         chatClient.getChannelByUniqueName('general')
                 .then(function (channel) {
                     generalChannel = channel;
@@ -323,6 +323,21 @@
         }
     }    
     /* end video */
+    
+    document.getElementById("button-verify").onclick = function() {
+        var opNumber = document.getElementById("op-number").value;
+        if (opNumber) {
+            print("---------------------");
+            print("Èíslo OP: " + opNumber);
+            print("Jméno: František Blábol");
+            print("Rodné èíslo: 12121980/1111");
+            print("Adresa: Randova 3167/7, Smíchov, 150 00 Praha 5");
+            print("---------------------");
+        } else {
+            alert("Zadejte èíslo OP");
+        }
+        
+    }
     
     
 //});
