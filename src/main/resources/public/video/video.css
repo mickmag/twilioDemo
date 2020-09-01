@@ -184,6 +184,11 @@ div#controls {
        margin-top: 2.20em;        
     }
     
+    .muted {
+        background-color: #272726;
+        color: #fff;
+    }
+    
     
 /** CSS for chat */
 #messages {
