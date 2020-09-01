@@ -44,7 +44,9 @@ public class ServerApp {
     public static void main(String[] args) {
 
         // Load environment variables from .env or the System environment
-        Dotenv dotenv = Dotenv.load();
+//        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv = Dotenv.configure().directory("./conf/.env").load();
+        
 
         // Serve static files from src/main/resources/public
         staticFileLocation("/public");
