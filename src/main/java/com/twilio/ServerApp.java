@@ -31,12 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-
 public class ServerApp {
 
     final static Logger logger = LoggerFactory.getLogger(ServerApp.class);
 
     private static class Response {
+
         String message;
         String error;
     }
@@ -56,6 +56,8 @@ public class ServerApp {
         configuration.put("TWILIO_API_KEY", dotenv.get("TWILIO_API_KEY"));
         configuration.put("TWILIO_API_SECRET", dotenv.get("TWILIO_API_SECRET"));
         configuration.put("TWILIO_NOTIFICATION_SERVICE_SID", dotenv.get("TWILIO_NOTIFICATION_SERVICE_SID"));
+        configuration.put("TWILIO_VIDEO_ROOM_NAME", dotenv.get("TWILIO_VIDEO_ROOM_NAME"));
+        configuration.put("TWILIO_CHAT_CHANNEL", dotenv.get("TWILIO_CHAT_CHANNEL"));
 
         // These env. variables are optional; capture only those that appear meaningfully configured.
         // ---
@@ -85,7 +87,6 @@ public class ServerApp {
             json.putAll(configuration);
             json.put("TWILIO_API_SECRET", apiSecretConfigured);
 
-
             // Render JSON response
             Gson gson = new Gson();
             response.type("application/json");
@@ -95,10 +96,11 @@ public class ServerApp {
         // Create an access token with the provided identity using our Twilio credentials
         post("/token", (request, response) -> {
             Gson gson = new Gson();
-            Type type = new TypeToken<Map<String, Object>>(){}.getType();
+            Type type = new TypeToken<Map<String, Object>>() {
+            }.getType();
             Map<String, Object> props = gson.fromJson(request.body(), type);
 
-            String identity = (String)props.get("identity");
+            String identity = (String) props.get("identity");
 
             // create JSON response payload
             HashMap<String, String> json = new HashMap<>();
@@ -137,6 +139,8 @@ public class ServerApp {
             HashMap<String, String> json = new HashMap<>();
             json.put("identity", identity);
             json.put("token", generateToken(configuration, identity));
+            json.put("videoRoomName", configuration.get("TWILIO_VIDEO_ROOM_NAME"));
+            json.put("chatChannel", configuration.get("TWILIO_CHAT_CHANNEL"));
 
             // Render JSON response
             Gson gson = new Gson();
@@ -156,7 +160,8 @@ public class ServerApp {
 
             try {
                 // Decode the JSON Body into a map
-                Type type = new TypeToken<Map<String, Object>>(){}.getType();
+                Type type = new TypeToken<Map<String, Object>>() {
+                }.getType();
                 Map<String, Object> props = gson.fromJson(request.body(), type);
                 props = camelCaseKeys(props);
 
@@ -207,7 +212,8 @@ public class ServerApp {
                 Map<String, Object> props = new HashMap<String, Object>();
 
                 if ("application/json".equals(request.contentType())) {
-                    Type type = new TypeToken<Map<String, Object>>(){}.getType();
+                    Type type = new TypeToken<Map<String, Object>>() {
+                    }.getType();
                     props = gson.fromJson(request.body(), type);
                 } else {
                     for (String param : request.queryParams()) {
@@ -218,7 +224,6 @@ public class ServerApp {
                 props = camelCaseKeys(props);
 
                 logger.debug(props.toString());
-
 
                 if (props.containsKey("priority")) {
                     // Convert Priority from Object to enum value
@@ -268,7 +273,7 @@ public class ServerApp {
     }
 
     private static String generateToken(Map<String, String> configuration, String identity) {
-        
+
         // Create access token builder
         AccessToken.Builder builder = new AccessToken.Builder(
                 configuration.get("TWILIO_ACCOUNT_SID"),
@@ -293,7 +298,7 @@ public class ServerApp {
         }
 
         // Add Video grant
-        VideoGrant grant  = new VideoGrant();
+        VideoGrant grant = new VideoGrant();
         grants.add(grant);
 
         builder.grants(grants);
@@ -311,7 +316,7 @@ public class ServerApp {
     // Convert keys to camelCase to conform with the twilio-java api definition contract
     private static Map<String, Object> camelCaseKeys(Map<String, Object> map) {
         Map<String, Object> newMap = new HashMap<>();
-        map.forEach((k,v) -> {
+        map.forEach((k, v) -> {
             String newKey = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, k);
             newMap.put(newKey, v);
         });

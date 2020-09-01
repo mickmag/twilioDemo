@@ -3,7 +3,9 @@
     var activeRoom;
     var previewTracks;
     var identity;
-    var roomName;
+    var roomName;    
+    var fallbackRoomName="testFallbackRoom";
+    
     
     /* chat variables */
     var $chatWindow = $('#messages');
@@ -11,9 +13,10 @@
     var chatClient;
     // A handle to the chat channel - the one and only channel we
     // will have in this sample app
-    var chatChannel;
+    var chatChannel;        
     // channel name
-    var channelName = 'general';
+    var channelName;
+    var fallbackChatChannelName="testFallbackChannel";
     // The server will assign the client a random username - store that value
     // here
     var username;
@@ -55,6 +58,7 @@
         Twilio.Chat.Client.create(data.token).then(client => {
             console.log('Created chat client');
             chatClient = client;
+            channelName = data.chatChannel ? data.chatChannel : fallbackChatChannelName;
             chatClient.getSubscribedChannels().then(createOrJoinGeneralChannel);
             // when the access token is about to expire, refresh it
             chatClient.on('tokenAboutToExpire', function () {
@@ -183,7 +187,7 @@
         // Bind button to join room
         document.getElementById('button-join').onclick = function () {
             //    roomName = document.getElementById('room-name').value;
-            roomName = "test";
+            roomName = data.videoRoomName ? data.videoRoomName : fallbackRoomName;
             if (roomName) {
                 // print("Joining room '" + roomName + "'...");
                 print('Vstupujete do videokonference...');
