@@ -1,5 +1,6 @@
 //$(function () {
-    /* video variables */        
+    /* video variables */    
+    const screenShareBtn = document.getElementById('button-screen-share');
     const audioBtn = document.getElementById("button-mute-audio");
     const videoBtn = document.getElementById('button-mute-video');
     
@@ -7,7 +8,8 @@
     var previewTracks;
     var identity;
     var roomName;    
-    var fallbackRoomName="testFallbackRoom";    
+    var fallbackRoomName="testFallbackRoom";  
+    let screenTrack;
     
         
     /* chat variables */
@@ -93,8 +95,7 @@
 
     function createOrJoinGeneralChannel() {
         // Get the general chat channel, which is where all the messages are
-        // sent in this simple application
-        //    print('Attempting to join "general" chat channel...');                
+        // sent in this simple application        
         chatClient.getChannelByUniqueName(channelName)
                 .then(function (channel) {
                     chatChannel = channel;
@@ -153,7 +154,9 @@
     /* video */
     function attachTracks(tracks, container) {
         tracks.forEach(function (track) {
-            container.appendChild(track.attach());
+            let trackElement = track.attach();            
+            trackElement.addEventListener('click', () => { zoomTrack(trackElement); });
+            container.appendChild(trackElement);
         });
     }
 
@@ -165,6 +168,9 @@
     function detachTracks(tracks) {
         tracks.forEach(function (track) {
             track.detach().forEach(function (detachedElement) {
+                if (detachedElement.classList.contains('participantZoomed')) {
+                   zoomTrack(detachedElement);
+                }
                 detachedElement.remove();
             });
         });
@@ -189,29 +195,24 @@
         document.getElementById('room-controls').style.display = 'block';
         // Bind button to join room
         document.getElementById('button-join').onclick = function () {
-            //    roomName = document.getElementById('room-name').value;
             roomName = data.videoRoomName ? data.videoRoomName : fallbackRoomName;
-            if (roomName) {
-                // print("Joining room '" + roomName + "'...");
-                print('Vstupujete do videokonference...');
-                var connectOptions = {
-                    name: roomName,
-                    logLevel: 'debug'
-                };
-                if (previewTracks) {
-                    connectOptions.tracks = previewTracks;
-                }
-
-                Twilio.Video.connect(data.token, connectOptions).then(roomJoined, function (error) {
-                    print('Could not connect to Twilio: ' + error.message);
-                });
-            } else {
-                alert('Please enter a room name.');
+            print('Vstupujete do videokonference...');
+            var connectOptions = {
+                name: roomName,
+                logLevel: 'debug'
+            };
+            if (previewTracks) {
+                connectOptions.tracks = previewTracks;
             }
+
+            Twilio.Video.connect(data.token, connectOptions).then(roomJoined, function (error) {
+                print('Could not connect to Twilio: ' + error.message);
+            });
         };
         // Bind button to leave room
         document.getElementById('button-leave').onclick = function () {
             print('Opouštíte videokonferenci...');
+            finishSharingScreen();
             activeRoom.disconnect();
         };
     }
@@ -221,12 +222,10 @@
         activeRoom = room;
         print('Jste pøipojen do videokonference jako uživatel: ' +
                 '<span class="me">' + identity + '</span>', true);
-        //    print("Pøipojen do videokonfernce jako uživatel '" + identity + ".'");
         document.getElementById('button-join').style.display = 'none';
         document.getElementById('button-leave').style.display = 'inline';
         
-        document.getElementById('button-mute-audio').style.display = 'inline';
-        document.getElementById('button-mute-video').style.display = 'inline';
+        enableVideoButtons();        
         // Draw local video, if not already previewing
         var previewContainer = document.getElementById('local-media');
         if (!previewContainer.querySelector('video')) {
@@ -242,12 +241,12 @@
         room.on('participantConnected', function (participant) {
             print('Uživatel <span class="username">' + participant.identity + '</span> se pøipojil do videokonference.', true);
         });
-        room.on('trackAdded', function (track, participant) {
+        room.on('trackSubscribed', function (track, participant) {
             //        print(participant.identity + " added track: " + track.kind);
             var previewContainer = document.getElementById('remote-media');
             attachTracks([track], previewContainer);
         });
-        room.on('trackRemoved', function (track, participant) {
+        room.on('trackUnsubscribed', function (track, participant) {
             //        print(participant.identity + " removed track: " + track.kind);
             detachTracks([track]);
         });
@@ -265,11 +264,26 @@
             activeRoom = null;
             document.getElementById('button-join').style.display = 'inline';
             document.getElementById('button-leave').style.display = 'none';
-            audioBtn.style.display = 'none';
-            audioBtn.innerHTML = "Vypnout zvuk";
-            videoBtn.style.display = 'none';
-            videoBtn.innerHTML = "Vypnout video";
+            disableVideoButtons();            
         });
+    }
+    
+    function enableVideoButtons() {
+        audioBtn.style.display = 'inline';
+        videoBtn.style.display = 'inline';
+        screenShareBtn.style.display = 'inline';
+    }
+    
+    function disableVideoButtons() {
+        audioBtn.style.display = 'none';    
+        audioBtn.classList.remove("muted");    
+        audioBtn.innerHTML = "Vypnout zvuk";
+        
+        videoBtn.style.display = 'none';
+        videoBtn.classList.remove("muted");
+        videoBtn.innerHTML = "Vypnout video";                        
+        
+        screenShareBtn.style.display = 'none';
     }
 
     //  Local video preview
@@ -288,12 +302,6 @@
             print('Unable to access Camera and Microphone');
         });
     };
-    // Activity log
-    function log(message) {
-        var logDiv = document.getElementById('log');
-        logDiv.innerHTML += '<p>&gt;&nbsp;' + message + '</p>';
-        logDiv.scrollTop = logDiv.scrollHeight;
-    }
 
     function leaveRoomIfJoined() {
         if (activeRoom) {
@@ -335,7 +343,68 @@
                 });
             }           
         }
+    }   
+    screenShareBtn.onclick = shareScreenHandler;
+    
+    
+    
+    function shareScreenHandler() {
+        event.preventDefault();
+        if (!screenTrack) {
+            navigator.mediaDevices.getDisplayMedia().then(stream => {
+                screenTrack = new Twilio.Video.LocalVideoTrack(stream.getTracks()[0]);
+                activeRoom.localParticipant.publishTrack(screenTrack);
+                screenTrack.mediaStreamTrack.onended = () => { shareScreenHandler() };
+                print("Sdílení obrazovky bylo zahájeno...");
+                console.log(screenTrack);
+                screenShareBtn.innerHTML = 'Zastavit sdílení obrazovky';
+                screenShareBtn.classList.add("muted");
+            }).catch(() => {
+                alert('Could not share the screen.')
+            });
+        } else {
+            finishSharingScreen();
+        }        
     }    
+    
+    function finishSharingScreen() {
+        if (screenTrack) {
+            activeRoom.localParticipant.unpublishTrack(screenTrack);
+            screenTrack.stop();
+            screenTrack = null;
+            print("Sdílení obrazovky bylo ukonèeno...");            
+        }
+        screenShareBtn.innerHTML = 'Sdílet obrazovku';
+        screenShareBtn.classList.remove("muted");
+    }
+    
+    function zoomTrack(trackElement) {
+        if (trackElement.parentNode.id === "local-media") {
+            // skip for local preview video
+            return;
+        }
+        if (!trackElement.classList.contains('participantZoomed')) {
+            // zoom in
+            document.getElementById('remote-media').childNodes.forEach(track => {      
+                if (track === trackElement) {
+                    track.classList.add('participantZoomed')
+                } else {
+                    track.classList.add('participantHidden')
+                }
+            });
+        }
+        else {
+            // zoom out
+            document.getElementById('remote-media').childNodes.forEach(track => {
+                if (track === trackElement) {
+                    track.classList.remove('participantZoomed');    
+                } else {
+                    track.classList.remove('participantHidden');
+                }
+            });
+        }
+    };
+    
     /* end video */
     
     document.getElementById("button-verify").onclick = function() {

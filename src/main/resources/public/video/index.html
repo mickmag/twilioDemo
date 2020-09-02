@@ -22,36 +22,33 @@
   </div>
   <div id="controls">     
     <div id="preview">
-      <!--<p class="instructions">Notáø: JUDR.Miroslava Sazbová</p>-->
       <div id="local-media"></div>
       <button id="button-preview">Náhled mojí kamery</button>
       <br/>
       <button id="button-mute-audio" style="display:none">Vypnout zvuk</button>
       <button id="button-mute-video" style="display:none">Vypnout video</button>      
+      <button id="button-screen-share" style="display:none">Sdílet obrazovku</button>
     </div>
 
     <div id="room-controls">
-      <!--<p class="instructions">Název místnosti:</p>-->
-      <!--<input id="room-name" type="text" placeholder="Zadejte název místnosti" />-->
       <button id="button-join">Vstoupit do videokonference</button>
-      <button id="button-leave">Opustit videokonferenci</button>
+      <button id="button-leave" style="display:none">Opustit videokonferenci</button>
       <br/>
-      <!--<div id="op-controls">-->
         <p class="op-number-instructions">Èíslo OP</p>
         <input id="op-number" type="text" placeholder="Zadejte èíslo OP" />
         <button id="button-verify">Ovìøit v ZR</button>
-      <!--</div>-->
     </div>
     <div id="chat">
         <div id="messages"></div>
         <input id="chat-input" type="text" placeholder="napište do konverzace" autofocus/>
     </div>
   </div>
-  
-  <div id="log"></div>
+ 
 
   <script src="//media.twiliocdn.com/sdk/js/common/v0.1/twilio-common.min.js"></script>
   <script src="//media.twiliocdn.com/sdk/js/video/releases/1.14.0/twilio-video.js"></script>
+  <!--<script src="//media.twiliocdn.com/sdk/js/video/releases/2.0.0/twilio-video.min.js"></script>-->
+  <!--<script src="//media.twiliocdn.com/sdk/js/video/releases/2.3.0/twilio-video.min.js"></script>-->
   <script src="//media.twiliocdn.com/sdk/js/chat/releases/4.0.0/twilio-chat.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
   <script src="demo.js"></script>

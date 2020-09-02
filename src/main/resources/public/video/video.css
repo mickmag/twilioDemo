@@ -116,11 +116,14 @@ div#controls {
       display: block;
     }
 
-    div#controls div#room-controls button {
+    div#controls div#room-controls #button-join,
+    div#controls div#room-controls #button-verify
+    {
       color: #fff;
       background: #272726;
       border: 1px solid #686865;
     }
+    
 
     div#top-info {
         padding:3em;
@@ -160,7 +163,17 @@ div#controls {
         color: #fff;
     }
     
+.participantZoomed {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+}
 
+.participantHidden {
+    display: none;
+}       
 /** CSS for chat */
 #messages {
   background-color:#232323;
