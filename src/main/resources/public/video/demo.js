@@ -159,27 +159,27 @@
             container.appendChild(trackElement);
         });
     }
-
-    function attachParticipantTracks(participant, container) {
-        var tracks = Array.from(participant.tracks.values());
-        attachTracks(tracks, container);
-    }
-
-    function detachTracks(tracks) {
-        tracks.forEach(function (track) {
-            track.detach().forEach(function (detachedElement) {
-                if (detachedElement.classList.contains('participantZoomed')) {
-                   zoomTrack(detachedElement);
-                }
-                detachedElement.remove();
-            });
-        });
-    }
-
-    function detachParticipantTracks(participant) {
-        var tracks = Array.from(participant.tracks.values());
-        detachTracks(tracks);
-    }
+//
+//    function attachParticipantTracks(participant, container) {
+//        var tracks = Array.from(participant.tracks.values());
+//        attachTracks(tracks, container);
+//    }
+//
+//    function detachTracks(tracks) {
+//        tracks.forEach(function (track) {
+//            track.detach().forEach(function (detachedElement) {
+//                if (detachedElement.classList.contains('participantZoomed')) {
+//                   zoomTrack(detachedElement);
+//                }
+//                detachedElement.remove();
+//            });
+//        });
+//    }
+//
+//    function detachParticipantTracks(participant) {
+//        var tracks = Array.from(participant.tracks.values());
+//        detachTracks(tracks);
+//    }
 
     // Check for WebRTC
     if (!navigator.webkitGetUserMedia && !navigator.mozGetUserMedia) {
@@ -225,17 +225,26 @@
         document.getElementById('button-join').style.display = 'none';
         document.getElementById('button-leave').style.display = 'inline';
         
+        let remoteMediaContainer = document.getElementById('remote-media');
+        let localMediaContainer = document.getElementById('local-media');
+        
         enableVideoButtons();        
         // Draw local video, if not already previewing
-        var previewContainer = document.getElementById('local-media');
-        if (!previewContainer.querySelector('video')) {
-            attachParticipantTracks(room.localParticipant, previewContainer);
+//        var previewContainer = document.getElementById('local-media');
+
+        if (!localMediaContainer.querySelector('video')) {
+            addLocalVideo();
+//            attachParticipantTracks(room.localParticipant, localMediaContainer);
+//            trackSubscribed (previewContainer, track);
+//            participantConnected(localMediaContainer, room.localParticipant);
+
         }
 
         room.participants.forEach(function (participant) {
             print('Ve videokonferenci je již pøipojen uživatel: <span class="username">' + participant.identity + "</span>", true);
-            var previewContainer = document.getElementById('remote-media');
-            attachParticipantTracks(participant, previewContainer);
+//            var previewContainer = document.getElementById('remote-media');
+            participantConnected(remoteMediaContainer, participant);
+//            attachParticipantTracks(participant, previewContainer);
         });
         // When a participant joins, draw their video on screen
         room.on('participantConnected', function (participant) {
@@ -243,30 +252,54 @@
         });
         room.on('trackSubscribed', function (track, participant) {
             //        print(participant.identity + " added track: " + track.kind);
-            var previewContainer = document.getElementById('remote-media');
-            attachTracks([track], previewContainer);
+//            var previewContainer = document.getElementById('remote-media');
+            trackSubscribed (remoteMediaContainer, track);
+//            attachTracks([track], previewContainer);
         });
         room.on('trackUnsubscribed', function (track, participant) {
             //        print(participant.identity + " removed track: " + track.kind);
-            detachTracks([track]);
+//            detachTracks([track]);
+            trackUnsubscribed(track);
         });
         // When a participant disconnects, note in log
         room.on('participantDisconnected', function (participant) {
             print('Uživatel <span class="username">' + participant.identity + '</span> opustil videokonferenci.', true);
-            detachParticipantTracks(participant);
+//            detachParticipantTracks(participant);
         });
         // When we are disconnected, stop capturing local video
         // Also remove media for all remote participants
         room.on('disconnected', function () {
             print('Jste odpojen z videokonference.');
-            detachParticipantTracks(room.localParticipant);
-            room.participants.forEach(detachParticipantTracks);
+//            detachParticipantTracks(room.localParticipant);
+//            room.participants.forEach(detachParticipantTracks);
             activeRoom = null;
             document.getElementById('button-join').style.display = 'inline';
             document.getElementById('button-leave').style.display = 'none';
             disableVideoButtons();            
         });
     }
+    
+    function participantConnected(div, participant) {                
+        participant.tracks.forEach(publication => {
+        if (publication.isSubscribed)
+            trackSubscribed(div, publication.track);
+        });
+    }
+    
+    function trackSubscribed(div, track) {
+        let trackElement = track.attach();
+        trackElement.addEventListener('click', () => { zoomTrack(trackElement); });
+        div.appendChild(trackElement);
+    };
+    
+    function trackUnsubscribed(track) {
+        track.detach().forEach(element => {
+            if (element.classList.contains('participantZoomed')) {
+                zoomTrack(element);
+            }
+            element.remove()
+        });
+    };
     
     function enableVideoButtons() {
         audioBtn.style.display = 'inline';
@@ -287,7 +320,10 @@
     }
 
     //  Local video preview
-    document.getElementById('button-preview').onclick = function () {
+    document.getElementById('button-preview').onclick = addLocalVideo;
+    
+    
+    function addLocalVideo() {
         var localTracksPromise = previewTracks ?
                 Promise.resolve(previewTracks) :
                 Twilio.Video.createLocalTracks();
@@ -313,13 +349,15 @@
         if (activeRoom) {
             if (videoBtn.innerHTML === "Vypnout video") {
                 activeRoom.localParticipant.videoTracks.forEach(publication => {
-                    publication.disable();
+//                    publication.disable();
+                    publication.track.disable();
                     videoBtn.innerHTML = "Zapnout video";
                     videoBtn.classList.add("muted");
                 });            
             } else {
                 activeRoom.localParticipant.videoTracks.forEach(publication => {
-                    publication.enable();
+                    publication.track.enable();
+//                    publication.enable();
                     videoBtn.innerHTML = "Vypnout video";
                     videoBtn.classList.remove("muted");
                 });           
@@ -331,22 +369,20 @@
         if (activeRoom) {
             if (audioBtn.innerHTML === "Vypnout zvuk") {
                 activeRoom.localParticipant.audioTracks.forEach(publication => {
-                    publication.disable();
+                    publication.track.disable();
                     audioBtn.innerHTML = "Zapnout zvuk";
                     audioBtn.classList.add("muted");
                 });
             } else {
                 activeRoom.localParticipant.audioTracks.forEach(publication => {
-                    publication.enable();
+                    publication.track.enable();
                     audioBtn.innerHTML = "Vypnout zvuk";
                     audioBtn.classList.remove("muted");
                 });
             }           
         }
     }   
-    screenShareBtn.onclick = shareScreenHandler;
-    
-    
+    screenShareBtn.onclick = shareScreenHandler;        
     
     function shareScreenHandler() {
         event.preventDefault();
